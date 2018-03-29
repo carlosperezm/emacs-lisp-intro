@@ -1,0 +1,10 @@
+#+TITLE: An introduction to programming in Emacs Lisp - my journey
+#+AUTHOR: Carlos Perez
+* Introduction
+"An Introduction to Programming in Emacs Lisp" by Robert J. Chassell is a book
+included in the Emacs tutorials.
+You can find it in Emacs with ~C-h i m~ and search for "Emacs
+Lisp Intro".
+
+I am keeping here a record of my notes and solutions to the exercises of the
+book and making it public to motivate myself to be organized.
