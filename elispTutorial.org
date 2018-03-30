@@ -158,19 +158,27 @@ Write an expression that prints a message in the echo area when evaluated.
 : I have run this line 2 times so far
 
 * Practicing evaluation
-Evaluate different expressions.
+Evaluate different buffer-related expressions.
 
 ** How to
   - Pressing any key in emacs evaluates a function. Called *Interactive
     functions* or *commands*
   - "C-x C-e"
+  - Others...
 
 ** Buffer names 
  - (buffer-name)
  - (buffer-file-name)
 
+Some important definitions:
+ - File :: information recorded permanently in a computer
+ - Buffer :: information inside Emacs that wil vanish at the end of the
+      session.
+
+~C-u C-x C-e~ allows to insert the value returned in the buffer.
+
 ** Getting buffers
-To get the buffer itself, the function "current-buffer" is used.
+To get the buffer itself, the function ~current-buffer~ is used.
 If the function is evaluated, it shows the name of the buffer only.
  - (current-buffer)
 
@@ -178,19 +186,26 @@ If the function is evaluated, it shows the name of the buffer only.
    you are currently in
 
 ** Switching buffers
- - (switch-to-buffer (other-buffer))
+ - (switch-to-buffer (other-buffer)): switches the buffer and shows it in the
+   window
+
+Emacs implements it as an interactive function with ~C-x b~
+The function ~set-buffer~ changes focus to buffer only.
 
 ** Buffer size and the location of point
 
  - (buffer-size) : count of number of chars in a buffer
- - (point)
+ - (point): number, where the cursor is located form the beginning of the
+   buffer
+ - (point-min)
+ - (point-max)
 
 ** Exercise
  - (buffer-name)  "elispTutorial.org"
  - (buffer-file-name)
    "/home/carlosperez/Documents/learning/emacs/elisp/elispTutorial.org" 
- - (buffer-size) 2069
- - (point) 2068
+ - (buffer-size) 10670
+ - (point) 5387
 
 * How to write function definitions
 
@@ -216,10 +231,10 @@ An example:
        (* 7 number))
 
 ** Install a function definition
-Evaluate a defun, so it is installed in Emacs
+Evaluate a defun with ~C-x C-e~, so it is installed in Emacs
 
 *** Change a function definition
-JUst rewrite and re evaluate it
+Just rewrite and re evaluate it
 
 ** Make a function interactive
 You make it by placing a list that begins with the special form 'interactive'
@@ -240,7 +255,7 @@ followed by a number, for example, ‘M-3 M-e’, or by typing ‘C-u’ and the
 number, for example, ‘C-u 3 M-e’ (if you type ‘C-u’ without a number, it
 defaults to 4).
 
-** Different options for interactive
+*** Different options for interactive
 (interactive "p")
 
  - p: Interpret your typing C-u as a command to pass the number to the function
@@ -274,10 +289,10 @@ A ~let~ expression is a list of 3 parts.
 
 (let VARLIST BODY...)
 
-     (let ((VARIABLE VALUE)
-           (VARIABLE VALUE)
-           …)
-       BODY…)
+(let ((VARIABLE VALUE)
+     (VARIABLE VALUE)
+     …)
+ BODY…)
 
 *** Sample ~let~ expression
 
@@ -295,20 +310,26 @@ Conditional, instructs the computer to make decisions.
      (if TRUE-OR-FALSE-TEST
          ACTION-TO-CARRY-OUT-IF-TEST-IS-TRUE)
 
-An example
-     (if (> 5 4)                             ; if-part
-         (message "5 is greater than 4!"))   ; then-part
+An example:
+#+BEGIN_SRC emacs-lisp
+(if (> 5 4)                             ; if-part
+    (message "5 is greater than 4!"))   ; then-part
+#+END_SRC
+
 The function > tests whether its first argument is greater than its second
      argument and returns true if it is.
 
 The value to test is usually not known beforehand
 
-     (defun type-of-animal (characteristic)
-       "Print message in echo area depending on CHARACTERISTIC.
+#+BEGIN_SRC emacs-lisp
+(defun type-of-animal (characteristic)
+  "Print message in echo area depending on CHARACTERISTIC.
      If the CHARACTERISTIC is the symbol `fierce',
      then warn of a tiger."
-       (if (equal characteristic 'fierce)
-           (message "It's a tiger!")))
+  (if (equal characteristic 'fierce)
+      (message "It's a tiger!")))
+
+#+END_SRC
 
 In Lisp, ‘equal’ is a function that determines whether its first argument is
 equal to its second argument.
@@ -323,13 +344,15 @@ The word ~else~ is not written in the codes. It comes after the then part.
          ACTION-TO-CARRY-OUT-IF-THE-TEST-RETURNS-TRUE
        ACTION-TO-CARRY-OUT-IF-THE-TEST-RETURNS-FALSE)
 
-     (if (> 4 5)                               ; if-part
-         (message "4 falsely greater than 5!") ; then-part
-       (message "4 is not greater than 5!"))   ; else-part
+#+BEGIN_SRC emacs-lisp
+(if (> 4 5)                               ; if-part
+    (message "4 falsely greater than 5!") ; then-part
+  (message "4 is not greater than 5!"))   ; else-part
+#+END_SRC
 
 ** Truth and falsehood in Elisp
 The expression that tests for truth is interpreted as "true" if the result of
-evaluating is a value that is not "nil".
+evaluating is a value that is not "nil". Could be a number for example.
 
 *** Nil explained
 Two meanings:
@@ -349,15 +372,23 @@ then restores point and mark to their previous positions.
    a previous mark with C-u C-<SPC>. They are saved in the mark ring.
  - Region: the part of the buffer between point and mark.
 
-
 *** Template for using it
 
      (save-excursion
        BODY…)
 
+Often occurs inside a ~let~ expression
 
      (let VARLIST
        (save-excursion
          BODY…))
 
+#+BEGIN_SRC emacs-lisp
+(message "We are %d characters into this buffer."
+         (- (point)
+            (save-excursion
+              (goto-char (point-min)) (point))))
+#+END_SRC
 
+#+RESULTS:
+: We are 10923 characters into this buffer.
