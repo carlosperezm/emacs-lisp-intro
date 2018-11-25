@@ -19,8 +19,8 @@ Looks for a quote before the list, if there is one, returns the list, otherwise
 looks for a function of the first element.
 
 *** Complications
- - Can evaluate a symbol that is not quoted
- - Special functions.
+ - Can evaluate a symbol that is not quoted or does not have parenthesis
+ - Special forms (functions).
  - Macros: translates a Lisp expression into another to be evaluated in place
    of it
  - Inner list always evaluated first. Otherwise, from left to right.
@@ -50,7 +50,7 @@ cursor) or else produce an error.
 
 ** Variables
 A symbol can have a value attached to it just as it can have a function
-definiton attached to it.
+definition attached to it.
 A symbol that has a value.
 
 When there is a variable, we don't place parentheses around it,as we don't
@@ -86,7 +86,7 @@ In Lisp, are the atoms or lists that follow the function.
 #+RESULTS:
 : He saw 47 red foxes leaping.
 ** Setting the value of a variable
-Ways by which a variable can be given a value.
+Ways by which a variable can be given a value. Bind a variable to a value
 
 *** Set
 
@@ -255,7 +255,43 @@ followed by a number, for example, ‘M-3 M-e’, or by typing ‘C-u’ and the
 number, for example, ‘C-u 3 M-e’ (if you type ‘C-u’ without a number, it
 defaults to 4).
 
-*** Different options for interactive
+*File: eintr.info,  Node: append interactive,  Next: append-to-buffer body,  Prev: append-to-buffer overview,  Up: append-to-buffer
+
+4.4.1 The ‘append-to-buffer’ Interactive Expression
+---------------------------------------------------
+
+Since the ‘append-to-buffer’ function will be used interactively, the
+function must have an ‘interactive’ expression.  (For a review of
+‘interactive’, see *note Making a Function Interactive: Interactive.)
+The expression reads as follows:
+
+     (interactive
+      (list (read-buffer
+             "Append to buffer: "
+             (other-buffer (current-buffer) t))
+            (region-beginning)
+            (region-end)))
+
+This expression is not one with letters standing for parts, as described
+earlier.  Instead, it starts a list with these parts:
+
+   The first part of the list is an expression to read the name of a
+buffer and return it as a string.  That is ‘read-buffer’.  The function
+requires a prompt as its first argument, ‘"Append to buffer: "’.  Its
+second argument tells the command what value to provide if you don’t
+specify anything.
+
+   In this case that second argument is an expression containing the
+function ‘other-buffer’, an exception, and a ‘t’, standing for true.
+
+   The first argument to ‘other-buffer’, the exception, is yet another
+function, ‘current-buffer’.  That is not going to be returned.  The
+second argument is the symbol for true, ‘t’.  that tells ‘other-buffer’
+that it may show visible buffers (except in this case, it will not show
+the current buffer, which makes sense).
+
+   The expression looks like this:
+** Different options for interactive
 (interactive "p")
 
  - p: Interpret your typing C-u as a command to pass the number to the function
@@ -391,4 +427,142 @@ Often occurs inside a ~let~ expression
 #+END_SRC
 
 #+RESULTS:
-: We are 10923 characters into this buffer.
+: We are 12613 characters into this buffer.
+
+** Exercises
+
+*** Exercise 1
+Write a non-interactive function that doubles the value of its argument, a
+number.  Make that function interactive.
+
+#+BEGIN_SRC emacs-lisp
+
+(defun double (number)
+  "Doubles the value of the argument"
+  (* 2 number)
+  )
+
+(defun double-interactive (number)
+  "Doubles the value of the argument"
+  (interactive "p")
+  (message "The result is %d" (* 2 number))
+  )
+
+(double 3)
+#+END_SRC
+
+#+RESULTS:
+: 6
+
+*** Exercise 2
+Write a function that tests whether the current value of ~fill-column~ is
+greater than the argument passed to the function, and if so, prints an
+appropriate message.
+
+#+BEGIN_SRC emacs-lisp
+(defun carlos-greater-than-fill-column-p (value)
+  "Test whether VALUE is greater than 'fill-column'."
+  (if (> value fill-column)
+      (message "%d is greater than %s" value 'fill-column)
+    (message "%s is greater than %d" 'fill-column value)
+    )
+  )
+
+(carlos-greater-than-fill-column-p 87)
+#+END_SRC
+
+#+RESULTS:
+: 87 is greater than fill-column
+
+
+
+
+* Buffer-related functions
+Explore in detail several functions related to buffers.
+
+** Find more info
+ - ~C-h f~ and the name of the function
+ - ~C-h v~ and the name of the variable
+ - ~describe-function~ tells the location of the function definition
+ - ~find-tag~
+ - TAGS table
+
+** beginning-of-buffer
+Generally bound to M-<
+
+Shortened version:
+ - Expression to make it interactive
+ - Leave a mark at the original position
+ - Move the cursor to the beginning of the buffer.
+
+#+BEGIN_SRC emacs-lisp
+(defun simplified-beginning-of-buffer ()
+  "Move point to the beginning of the buffer;
+     leave mark at previous position."
+  (interactive)
+  (push-mark)
+  (goto-char (point-min)))
+#+END_SRC
+
+Body:
+ - ~push-mark~: sets a mark at the current position of the cursor.
+ - ~goto-char~: jumps the cursor to a point.
+
+** mark-whole-buffer
+Bound to C-x h
+Marks a whole buffer as a region by putting point at the beginning and mark at
+the end of the buffer.
+
+#+BEGIN_SRC emacs-lisp
+(defun mark-whole-buffer ()
+  "Put point at beginning and mark at end of buffer.
+     You probably should not use this function in Lisp programs;
+     it is usually a mistake for a Lisp function to use any subroutine
+     that uses or sets the mark."
+  (interactive)
+  (push-mark (point))
+  (push-mark (point-max) nil t)
+  (goto-char (point-min)))
+
+#+END_SRC
+
+** append-to-buffer
+Copy the region from the current buffer to a specified buffer.
+
+*** Overview
+Uses the ~insert-buffer-substring~ function to copy the region.
+Most of the code is about setting up the conditions for it to work. The code
+must specify:
+ - the buffer to which the text will go
+ - the window it comes from and goes to
+ - the region that will be copied
+
+#+BEGIN_SRC emacs-lisp
+(defun append-to-buffer (buffer start end)
+  "Append to specified buffer the text of the region.
+     It is inserted into that buffer before its point.
+
+     When calling from a program, give three arguments:
+     BUFFER (or buffer name), START and END.
+     START and END specify the portion of the current buffer to be copied."
+  
+  (interactive
+   (list (read-buffer "Append to buffer: " (other-buffer
+                                            (current-buffer) t))
+         (region-beginning) (region-end)))
+  
+  (let ((oldbuf (current-buffer)))
+    (save-excursion
+      (let* ((append-to (get-buffer-create buffer))
+             (windows (get-buffer-window-list append-to t t))
+             point)
+        (set-buffer append-to)
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
+
+#+END_SRC
+
