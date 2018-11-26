@@ -513,7 +513,7 @@ must specify:
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer
                                             (current-buffer) t))
-         (region-beginning) (region-end)))
+         (region-beginning) (region-end))) 
   
   (let ((oldbuf (current-buffer)))
     (save-excursion
@@ -530,3 +530,23 @@ must specify:
 
 #+END_SRC
 
+*** Interactive expression
+It starts a list for interactive parts
+
+ - Read the name of a buffer and return it as a string ~read-buffer~
+   - Prompt
+   - Value to provide if nothing is specified (other-buffer (current-buffer) t)
+ - beginning of text to be appended
+ - end of text to be appended
+
+*** Body
+
+(defun append-to-buffer (buffer start end) "DOCUMENTATION…"  (interactive
+…)  (let ((VARIABLE VALUE)) BODY…)
+
+The ‘let’ expression has three elements:
+
+  1. The symbol ‘let’;
+  2. A varlist containing, in this case, a single two-element list, ‘(VARIABLE
+     VALUE)’;
+  3. The body of the ‘let’ expression.
